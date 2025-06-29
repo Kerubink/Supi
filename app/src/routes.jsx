@@ -1,5 +1,5 @@
 // src/routes.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import App from "./App";
@@ -9,11 +9,15 @@ import Contact from "./pages/Contact";
 import Profile from "./pages/Profile";
 import LoginPage from "./pages/Login"; 
 import RegisterPage from "./pages/Register"; 
-import { auth } from "./config/firebaseconfig";
+// Import FormsCustomization component
+import FormsCustomization from "./pages/formsCustomization"; // Make sure the path is correct
+
+import { auth, db } from "./config/firebaseconfig"; // Import 'db' here
 import { onAuthStateChanged } from "firebase/auth";
-import { useState, useEffect } from "react"; 
+import { doc, getDoc } from "firebase/firestore"; // Import getDoc for fetching data
 
 
+// PrivateRoute remains for basic authentication check
 function PrivateRoute({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -33,18 +37,72 @@ function PrivateRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
+// New component to guard access based on onboarding status
+function OnboardingGuard({ children }) {
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(null); // null means still loading
+  const [loadingOnboarding, setLoadingOnboarding] = useState(true);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        try {
+          const userProfileRef = doc(db, `users/${user.uid}/user_profiles/profile`);
+          const docSnap = await getDoc(userProfileRef);
+          if (docSnap.exists() && docSnap.data().hasCompletedOnboardingForm) {
+            setHasCompletedOnboarding(true);
+          } else {
+            // If document doesn't exist, or flag is false/undefined, assume not completed
+            setHasCompletedOnboarding(false);
+          }
+        } catch (error) {
+          console.error("Erro ao verificar status do onboarding:", error);
+          // In case of error, assume onboarding needs to be completed for safety
+          setHasCompletedOnboarding(false); 
+        } finally {
+          setLoadingOnboarding(false);
+        }
+      } else {
+        // Not authenticated, let PrivateRoute handle redirection to login
+        setHasCompletedOnboarding(false); 
+        setLoadingOnboarding(false);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  if (loadingOnboarding) {
+    return <div>Verificando perfil...</div>; // Or a custom loading spinner
+  }
+
+  // If user is authenticated and has NOT completed onboarding, redirect to onboarding form
+  if (userId && !hasCompletedOnboarding) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // If user is authenticated and HAS completed onboarding, or not authenticated (PrivateRoute will handle login redirect)
+  return children;
+}
+
+
 function AppRoutes() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/onboarding" element={<FormsCustomization />} /> {/* New route for the onboarding form */}
 
+        {/* Protected routes wrapped with PrivateRoute and OnboardingGuard */}
         <Route
           path="/"
           element={
             <PrivateRoute>
-              <App />
+              <OnboardingGuard>
+                <App />
+              </OnboardingGuard>
             </PrivateRoute>
           }
         >
