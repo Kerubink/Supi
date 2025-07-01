@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import App from "./App";
-import HomePageContent from "./pages/HomePageContent";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Profile from "./pages/Profile";
@@ -15,6 +14,7 @@ import FormsCustomization from "./pages/formsCustomization"; // Make sure the pa
 import { auth, db } from "./config/firebaseconfig"; // Import 'db' here
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore"; // Import getDoc for fetching data
+import DashboardHomePage from "./pages/HomePageContent";
 
 
 // PrivateRoute remains for basic authentication check
@@ -95,7 +95,6 @@ function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/onboarding" element={<FormsCustomization />} /> {/* New route for the onboarding form */}
 
-        {/* Protected routes wrapped with PrivateRoute and OnboardingGuard */}
         <Route
           path="/"
           element={
@@ -106,7 +105,7 @@ function AppRoutes() {
             </PrivateRoute>
           }
         >
-          <Route index element={<HomePageContent />} />
+          <Route index element={<DashboardHomePage />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="profile" element={<Profile />} />
