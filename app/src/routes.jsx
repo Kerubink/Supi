@@ -3,10 +3,10 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import App from "./App";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+import LearningTrailsPage from "./pages/LearningTrailsPage";
 import Profile from "./pages/Profile";
 import LoginPage from "./pages/Login"; 
+import FinancesPage from "./pages/FinancesPage";
 import RegisterPage from "./pages/Register"; 
 // Import FormsCustomization component
 import FormsCustomization from "./pages/formsCustomization"; // Make sure the path is correct
@@ -106,8 +106,8 @@ function AppRoutes() {
           }
         >
           <Route index element={<DashboardHomePage />} />
-          <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
+          <Route path="about" element={<FinancesPage />} />
+          <Route path="contact" element={<LearningTrailsPage />} />
           <Route path="profile" element={<Profile />} />
           <Route
             path="*"
