@@ -1,16 +1,14 @@
 // src/pages/FinancesPage.jsx
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore'; // Adicionado addDoc
-// Imports for auth and db instances from your Firebase configuration file.
-// The path is relative: '..' goes up one level (from 'pages' to 'src'), then enters 'config'.
+import { doc, collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebaseconfig'; 
 
 // Imports for Recharts components needed for the chart
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 // Importa o novo componente ScannerModal
-import ScannerModal from '../components/finances/ScannerModal'; // Ajuste o caminho conforme a estrutura da sua pasta
+import ScannerModal from '../components/finances/ScannerModal'; 
 
 // Example Icons
 const BalanceIcon = () => <span className="text-xl">💵</span>;
@@ -18,7 +16,7 @@ const GoalsIcon = () => <span className="text-xl">🎯</span>;
 const ChartIcon = () => <span className="text-xl">📊</span>;
 const HistoryIcon = () => <span className="text-xl">📜</span>;
 const ProgressIcon = () => <span className="text-xl">📈</span>;
-const ScannerIcon = () => <span className="text-xl">📸</span>; // Novo ícone para o scanner
+const ScannerIcon = () => <span className="text-xl">📸</span>;
 
 // Colors for the pie chart (you can customize)
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -26,16 +24,16 @@ const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'
 function FinancesPage() {
   const [userId, setUserId] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [transactions, setTransactions] = useState([]); // Transaction history
-  const [goals, setGoals] = useState([]); // User goals
+  const [transactions, setTransactions] = useState([]); 
+  const [goals, setGoals] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAuthReady, setIsAuthReady] = useState(false); // State to control authentication readiness
-  const [isScannerOpen, setIsScannerOpen] = useState(false); // Estado para controlar a visibilidade do modal do scanner
+  const [isAuthReady, setIsAuthReady] = useState(false); 
+  const [isScannerOpen, setIsScannerOpen] = useState(false); 
+  const [scanMessage, setScanMessage] = useState(''); 
 
   // Effect to set up the authentication state listener
   useEffect(() => {
-    // Checks if 'auth' was imported correctly before attempting to use it
     if (!auth) {
       setError("Firebase Auth is not available. Check Firebase configuration in '../config/firebaseconfig.js'.");
       setLoading(false);
@@ -52,15 +50,14 @@ function FinancesPage() {
         setTransactions([]);
         setGoals([]);
       }
-      setIsAuthReady(true); // Marks authentication as ready after the first check
-      setLoading(false); // Sets loading to false after initial authentication
+      setIsAuthReady(true); 
+      setLoading(false); 
     });
     return () => unsubscribeAuth();
-  }, []); // Runs only once on component mount
+  }, []);
 
   // Effect to fetch user profile and goals data, depending on userId and db
   useEffect(() => {
-    // Only attempts to fetch data if authentication is ready, there's a userId, and db is available
     if (isAuthReady && userId && db) {
       // Listener for user profile
       const userProfileRef = doc(db, `users/${userId}/user_profiles/profile`);
@@ -68,7 +65,6 @@ function FinancesPage() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setUserData(data);
-          // Ensures 'objective' is an array or handles cases where it's undefined/null
           setGoals(Array.isArray(data.objective) ? data.objective : []); 
         } else {
           setUserData(null);
@@ -87,9 +83,6 @@ function FinancesPage() {
         const fetchedTransactions = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          // Converts Timestamp to date string. Ensures 'date' is a valid string.
-          // If doc.data().date is a Timestamp, convert to Date and then to ISO string.
-          // Otherwise, use the existing value or current date as fallback.
           date: doc.data().date?.toDate ? doc.data().date.toDate().toISOString().split('T')[0] : (doc.data().date || new Date().toISOString().split('T')[0])
         }));
         setTransactions(fetchedTransactions);
@@ -103,13 +96,12 @@ function FinancesPage() {
         unsubscribeTransactions();
       };
     } else if (isAuthReady && !userId) {
-      // If authentication is ready but no userId (unlogged/anonymous user),
-      // ensures loading is false and doesn't display Firestore not configured error.
       setLoading(false);
     }
-  }, [userId, db, isAuthReady]); // Depends on userId, db, and isAuthReady
+  }, [userId, db, isAuthReady]);
 
   // --- Helper Functions for Financial Data Calculation ---
+  // Calculates the overall balance based on initial balance and all historical transactions (income and expenses).
   const calculateBalance = () => {
     const initialBalance = parseFloat(userData?.currentBalance || 0);
     const totalExpenses = transactions
@@ -121,6 +113,7 @@ function FinancesPage() {
     return (initialBalance + totalIncome - totalExpenses).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  // Calculates total expenses for the current month.
   const getMonthlyExpenses = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -133,29 +126,36 @@ function FinancesPage() {
     return expensesThisMonth;
   };
 
+  // Retrieves the monthly budget from user data, or defaults to 0 if not set.
+  // This value should ideally be set by the user in their profile.
   const getMonthlyBudget = () => {
-    const monthlyIncome = parseFloat(userData?.monthlyIncome || 0);
-    // Example budget: 70% of monthly income. You can adjust this logic.
-    return monthlyIncome * 0.7;
+    return parseFloat(userData?.monthlyBudget || 0); // Prioriza 'monthlyBudget' do userData
   };
 
   // Function to get expense data for the chart, now including ALL historical expenses
   const getExpenseDataForChart = () => {
-    // Filter only expense transactions
     const allExpenses = transactions.filter(t => t.type === 'expense');
 
     const categories = {};
     allExpenses.forEach(t => {
-      categories[t.category] = (categories[t.category] || 0) + parseFloat(t.amount || 0);
+      const categoryName = t.category ? String(t.category) : 'Outros'; 
+      categories[categoryName] = (categories[categoryName] || 0) + parseFloat(t.amount || 0);
     });
 
-    // Log the data that will be used in the chart for debugging
     console.log("Expense data for chart (all historical):", categories);
 
-    return Object.keys(categories).map(category => ({
-      name: category,
-      value: categories[category],
-    }));
+    const chartData = Object.keys(categories)
+      .map(category => ({
+        name: category,
+        value: categories[category],
+      }))
+      .filter(entry => entry.value > 0); 
+
+    if (chartData.length === 0 && Object.keys(categories).length > 0) {
+      return [{ name: 'Outros', value: 0 }];
+    }
+
+    return chartData;
   };
 
   // Added for debugging: logs the transaction state whenever it changes
@@ -174,49 +174,11 @@ function FinancesPage() {
     }
   }, [transactions]);
 
-  // Função para adicionar uma nova transação (chamada pelo scanner)
-  const handleScannedData = async (scannedText) => {
-    setIsScannerOpen(false); // Fecha o modal do scanner
-    if (!userId) {
-      setError("Usuário não autenticado. Não é possível adicionar transação.");
-      return;
-    }
-
-    try {
-      // Tenta parsear o texto escaneado como JSON.
-      // Em um cenário real, você teria uma lógica de parsing mais robusta
-      // para boletos, faturas, etc.
-      let transactionData = {
-        description: "Transação Escaneada",
-        amount: 0,
-        type: "expense", // Assume despesa por padrão, ajuste conforme a lógica de parsing
-        category: "Outros", // Categoria padrão, ajuste conforme a lógica de parsing
-        date: new Date().toISOString().split('T')[0], // Data atual
-      };
-
-      try {
-        const parsedData = JSON.parse(scannedText);
-        // Exemplo de como você pode mapear dados de um JSON escaneado
-        if (parsedData.description) transactionData.description = parsedData.description;
-        if (parsedData.amount) transactionData.amount = parseFloat(parsedData.amount);
-        if (parsedData.type) transactionData.type = parsedData.type;
-        if (parsedData.category) transactionData.category = parsedData.category;
-        if (parsedData.date) transactionData.date = parsedData.date;
-      } catch (jsonError) {
-        console.warn("Texto escaneado não é um JSON válido, usando valores padrão:", scannedText);
-        transactionData.description = `Dados Escaneados: ${scannedText.substring(0, 50)}...`;
-        // Você pode adicionar uma lógica para tentar extrair valores de texto simples aqui
-      }
-
-      const transactionsColRef = collection(db, `users/${userId}/transactions`);
-      await addDoc(transactionsColRef, transactionData);
-      console.log("Transação adicionada com sucesso!");
-    } catch (err) {
-      console.error("Erro ao adicionar transação escaneada:", err);
-      setError("Falha ao adicionar transação escaneada.");
-    }
+  // Function to handle successful scan from ScannerModal
+  const handleScanSuccess = (parsedData) => {
+    setIsScannerOpen(false); 
+    setScanMessage(`Importação concluída: ${parsedData.length} itens adicionados.`);
   };
-
 
   // --- Conditional Rendering ---
   if (loading) {
@@ -242,12 +204,22 @@ function FinancesPage() {
       {/* Botão para abrir o scanner */}
       <div className="flex justify-center mb-8">
         <button
-          onClick={() => setIsScannerOpen(true)}
+          onClick={() => {
+            setIsScannerOpen(true);
+            setScanMessage(''); 
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition duration-300 ease-in-out transform hover:scale-105"
         >
           <ScannerIcon /> Escanear Boleto/Fatura
         </button>
       </div>
+
+      {scanMessage && ( 
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+          <p className="font-bold">Sucesso!</p>
+          <p>{scanMessage}</p>
+        </div>
+      )}
 
       {/* Current Balance */}
       <section className="bg-white p-6 rounded-lg shadow-xl mb-8 border border-gray-200 flex items-center justify-between">
@@ -289,7 +261,7 @@ function FinancesPage() {
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent, value }) => value > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : ''} 
               >
                 {getExpenseDataForChart().map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -318,11 +290,14 @@ function FinancesPage() {
         <div className="w-full bg-gray-200 rounded-full h-4">
           <div
             className="bg-red-500 h-4 rounded-full"
-            style={{ width: `${Math.min(100, (getMonthlyExpenses() / getMonthlyBudget()) * 100)}%` }}
+            style={{ width: `${Math.min(100, (getMonthlyExpenses() / Math.max(1, getMonthlyBudget())) * 100)}%` }}
           ></div>
         </div>
-        {getMonthlyExpenses() > getMonthlyBudget() && (
+        {getMonthlyBudget() > 0 && getMonthlyExpenses() > getMonthlyBudget() && (
           <p className="text-red-600 text-sm mt-2 text-center font-semibold">Você excedeu seu orçamento este mês!</p>
+        )}
+        {getMonthlyBudget() <= 0 && (
+          <p className="text-orange-500 text-sm mt-2 text-center">Defina um orçamento mensal em seu perfil para acompanhar seus gastos!</p>
         )}
       </section>
 
@@ -354,9 +329,9 @@ function FinancesPage() {
       {isScannerOpen && (
         <ScannerModal
           onClose={() => setIsScannerOpen(false)}
-          onScanSuccess={handleScannedData}
-          userId={userId} // Passa o userId para o modal
-          db={db} // Passa a instância do db para o modal
+          onScanSuccess={handleScanSuccess} 
+          userId={userId}
+          db={db}
         />
       )}
     </div>

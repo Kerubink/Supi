@@ -168,10 +168,8 @@ function LoginPage() {
   };
 
   return (
-    <section className="flex flex-col justify-between gap-15 h-screen bg-[url('https://i.pinimg.com/736x/73/b4/02/73b402ebb849a547b6c318b5a878e4fd.jpg')] bg-cover bg-no-repeat bg-center bg-black">
-      <h1 className="font-black text-xl cursor-pointer text-white p-1 text-center backdrop-blur-md bg-black/20 rounded-full w-18 m-1.5">
-        Supi
-      </h1>
+    <section className="flex flex-col justify-end gap-15 h-screen bg-[url('/Fundo-supi.jpg')] bg-cover bg-no-repeat bg-center bg-black">
+
 
       <div className="flex flex-col h-2/5 space-y-2.5 justify-end bg-gradient-to-t from-black via-gray-900 to-gray-800/5">
         <div className="text-white text-2xl font-extrabold p-3">
