@@ -1,41 +1,90 @@
 // src/pages/FinancesPage.jsx
-import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebaseconfig'; 
+import React, { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  doc,
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  getDoc,
+  setDoc,
+  addDoc,
+} from "firebase/firestore";
+import { auth, db } from "../config/firebaseconfig";
+
 
 // Imports for Recharts components needed for the chart
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+} from "recharts";
 
-// Importa o novo componente ScannerModal
-import ScannerModal from '../components/finances/ScannerModal'; 
+// Importa os componentes ScannerModal e HistoryMonthSelectorModal
+import ScannerModal from "../components/finances/ScannerModal";
+import HistoryMonthSelectorModal from "../components/finances/HistoryMonthSelectorModal";
+import Loading from "../components/loading/loading"; // Importa o componente de loading
 
-// Example Icons
-const BalanceIcon = () => <span className="text-xl">💵</span>;
-const GoalsIcon = () => <span className="text-xl">🎯</span>;
-const ChartIcon = () => <span className="text-xl">📊</span>;
-const HistoryIcon = () => <span className="text-xl">📜</span>;
-const ProgressIcon = () => <span className="text-xl">📈</span>;
-const ScannerIcon = () => <span className="text-xl">📸</span>;
+// Importa os ícones do Material UI
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import PieChartIcon from "@mui/icons-material/PieChart";
+import HistoryIcon from "@mui/icons-material/History";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"; // Para receitas
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"; // Para despesas
 
-// Colors for the pie chart (you can customize)
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+// Cores para o gráfico de pizza (ajustadas para o novo tema escuro)
+const COLORS = ["#00a8c6", "#40c0cb", "#aee239", "#8fbe00", "#FF8042"]; // Usando as cores fornecidas
 
 function FinancesPage() {
   const [userId, setUserId] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [transactions, setTransactions] = useState([]); 
-  const [goals, setGoals] = useState([]); 
+  const [transactions, setTransactions] = useState([]);
+  // Mock de dados de metas para demonstrar a nova estrutura
+  const [goals, setGoals] = useState([
+    {
+      id: "1",
+      name: "Viagem dos Sonhos",
+      description: "Juntar grana para a viagem de férias para Maceió!",
+      currentAmount: 1500,
+      targetAmount: 5000,
+    },
+    {
+      id: "2",
+      name: "Carro Novo",
+      description: "Economizar pra dar entrada no possante.",
+      currentAmount: 8000,
+      targetAmount: 25000,
+    },
+    {
+      id: "3",
+      name: "Reserva de Emergência",
+      description: "Construir um colchão de segurança.",
+      currentAmount: 3000,
+      targetAmount: 10000,
+    },
+  ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAuthReady, setIsAuthReady] = useState(false); 
-  const [isScannerOpen, setIsScannerOpen] = useState(false); 
-  const [scanMessage, setScanMessage] = useState(''); 
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scanMessage, setScanMessage] = useState("");
 
-  // Effect to set up the authentication state listener
+  const [selectedHistoryMonth, setSelectedHistoryMonth] = useState(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+
   useEffect(() => {
     if (!auth) {
-      setError("Firebase Auth is not available. Check Firebase configuration in '../config/firebaseconfig.js'.");
+      setError(
+        "Firebase Auth is not available. Check Firebase configuration in '../config/firebaseconfig.js'."
+      );
       setLoading(false);
       setIsAuthReady(true);
       return;
@@ -48,48 +97,69 @@ function FinancesPage() {
         setUserId(null);
         setUserData(null);
         setTransactions([]);
-        setGoals([]);
+        setGoals([]); // Resetar metas no logout
       }
-      setIsAuthReady(true); 
-      setLoading(false); 
+      setIsAuthReady(true);
+      setLoading(false);
     });
     return () => unsubscribeAuth();
   }, []);
 
-  // Effect to fetch user profile and goals data, depending on userId and db
   useEffect(() => {
     if (isAuthReady && userId && db) {
-      // Listener for user profile
       const userProfileRef = doc(db, `users/${userId}/user_profiles/profile`);
-      const unsubscribeProfile = onSnapshot(userProfileRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setUserData(data);
-          setGoals(Array.isArray(data.objective) ? data.objective : []); 
-        } else {
-          setUserData(null);
-          setGoals([]);
-          console.log("No profile document found.");
-        }
-      }, (err) => {
-        console.error("Error fetching profile:", err);
-        setError("Failed to load profile.");
-      });
 
-      // Listener for transactions
+      const unsubscribeProfile = onSnapshot(
+        userProfileRef,
+        async (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserData(data);
+            // Manter o mock de metas por enquanto, pois a estrutura de Firebase não foi alterada para objetos de meta
+            // setGoals(Array.isArray(data.objective) ? data.objective : []);
+
+            if (data.currentBalance !== undefined && !data.balanceSetDate) {
+              const today = new Date().toISOString().split("T")[0];
+              await setDoc(
+                userProfileRef,
+                { balanceSetDate: today },
+                { merge: true }
+              );
+              setUserData((prevData) => ({
+                ...prevData,
+                balanceSetDate: today,
+              }));
+            }
+          } else {
+            setUserData(null);
+            // setGoals([]); // Resetar metas se não houver perfil
+          }
+        },
+        (err) => {
+          console.error("Error fetching profile:", err);
+          setError("Failed to load profile.");
+        }
+      );
+
       const transactionsColRef = collection(db, `users/${userId}/transactions`);
-      const q = query(transactionsColRef, orderBy('date', 'desc'));
-      const unsubscribeTransactions = onSnapshot(q, (snapshot) => {
-        const fetchedTransactions = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          date: doc.data().date?.toDate ? doc.data().date.toDate().toISOString().split('T')[0] : (doc.data().date || new Date().toISOString().split('T')[0])
-        }));
-        setTransactions(fetchedTransactions);
-      }, (err) => {
-        console.error("Error fetching transactions:", err);
-        setError("Failed to load transactions.");
-      });
+      const q = query(transactionsColRef, orderBy("date", "desc"));
+      const unsubscribeTransactions = onSnapshot(
+        q,
+        (snapshot) => {
+          const fetchedTransactions = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            date: doc.data().date?.toDate
+              ? doc.data().date.toDate().toISOString().split("T")[0]
+              : doc.data().date || new Date().toISOString().split("T")[0],
+          }));
+          setTransactions(fetchedTransactions);
+        },
+        (err) => {
+          console.error("Error fetching transactions:", err);
+          setError("Failed to load transactions.");
+        }
+      );
 
       return () => {
         unsubscribeProfile();
@@ -100,240 +170,416 @@ function FinancesPage() {
     }
   }, [userId, db, isAuthReady]);
 
-  // --- Helper Functions for Financial Data Calculation ---
-  // Calculates the overall balance based on initial balance and all historical transactions (income and expenses).
   const calculateBalance = () => {
-    const initialBalance = parseFloat(userData?.currentBalance || 0);
-    const totalExpenses = transactions
-      .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
-    const totalIncome = transactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
-    return (initialBalance + totalIncome - totalExpenses).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const initialBalance = parseFloat(userData?.currentBalance || 0).toFixed(2);
+    const balanceSetDate = userData?.balanceSetDate;
+
+    let totalExpenses = 0;
+    let totalIncome = 0;
+
+    const startBalanceDateObj = balanceSetDate
+      ? new Date(balanceSetDate)
+      : null;
+
+    transactions.forEach((t) => {
+      const transactionDateObj = new Date(t.date);
+
+      if (!startBalanceDateObj || transactionDateObj >= startBalanceDateObj) {
+        if (t.type === "expense") {
+          totalExpenses += parseFloat(t.amount || 0);
+        } else if (t.type === "income") {
+          totalIncome += parseFloat(t.amount || 0);
+        }
+      }
+    });
+
+    totalExpenses = parseFloat(totalExpenses.toFixed(2));
+    totalIncome = parseFloat(totalIncome.toFixed(2));
+
+    const calculatedResult = (
+      parseFloat(initialBalance) +
+      totalIncome -
+      totalExpenses
+    ).toFixed(2);
+    return {
+      balance: parseFloat(calculatedResult).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }),
+      income: totalIncome.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }),
+      expenses: totalExpenses.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }),
+    };
   };
 
-  // Calculates total expenses for the current month.
   const getMonthlyExpenses = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const expensesThisMonth = transactions
-      .filter(t => {
+      .filter((t) => {
         const tDate = new Date(t.date);
-        return t.type === 'expense' && tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
+        return (
+          t.type === "expense" &&
+          tDate.getMonth() === currentMonth &&
+          tDate.getFullYear() === currentYear
+        );
       })
       .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
     return expensesThisMonth;
   };
 
-  // Retrieves the monthly budget from user data, or defaults to 0 if not set.
-  // This value should ideally be set by the user in their profile.
   const getMonthlyBudget = () => {
-    return parseFloat(userData?.monthlyBudget || 0); // Prioriza 'monthlyBudget' do userData
+    return parseFloat(userData?.monthlyBudget || 0);
   };
 
-  // Function to get expense data for the chart, now including ALL historical expenses
   const getExpenseDataForChart = () => {
-    const allExpenses = transactions.filter(t => t.type === 'expense');
+    const allExpenses = transactions.filter((t) => t.type === "expense");
 
     const categories = {};
-    allExpenses.forEach(t => {
-      const categoryName = t.category ? String(t.category) : 'Outros'; 
-      categories[categoryName] = (categories[categoryName] || 0) + parseFloat(t.amount || 0);
+    allExpenses.forEach((t) => {
+      const categoryName = t.category ? String(t.category) : "Outros";
+      categories[categoryName] =
+        (categories[categoryName] || 0) + parseFloat(t.amount || 0);
     });
 
-    console.log("Expense data for chart (all historical):", categories);
-
     const chartData = Object.keys(categories)
-      .map(category => ({
+      .map((category) => ({
         name: category,
-        value: categories[category],
+        value: parseFloat(categories[category].toFixed(2)),
       }))
-      .filter(entry => entry.value > 0); 
+      .filter((entry) => entry.value > 0);
 
     if (chartData.length === 0 && Object.keys(categories).length > 0) {
-      return [{ name: 'Outros', value: 0 }];
+      return [{ name: "Outros", value: 0 }];
     }
 
     return chartData;
   };
 
-  // Added for debugging: logs the transaction state whenever it changes
-  useEffect(() => {
-    console.log("Current transaction state:", transactions);
-    if (transactions.length === 0) {
-      console.log("No transactions loaded. Check your 'transactions' collection in Firestore.");
-    } else {
-      const currentMonthExpenses = transactions.filter(t => {
+  const getFilteredTransactions = () => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const currentMonthYear = `${currentYear}-${(currentMonth + 1)
+      .toString()
+      .padStart(2, "0")}`;
+
+    if (selectedHistoryMonth) {
+      const filtered = transactions.filter((t) => {
         const tDate = new Date(t.date);
-        return t.type === 'expense' && tDate.getMonth() === new Date().getMonth() && tDate.getFullYear() === new Date().getFullYear();
+        const transactionMonthYear = `${tDate.getFullYear()}-${(
+          tDate.getMonth() + 1
+        )
+          .toString()
+          .padStart(2, "0")}`;
+        return transactionMonthYear === selectedHistoryMonth;
       });
-      if (currentMonthExpenses.length === 0) {
-        console.log("No expenses for the current month. The chart might not appear if it's filtered by month.");
-      }
+      return filtered;
+    } else {
+      const filtered = transactions.filter((t) => {
+        const tDate = new Date(t.date);
+        const isCurrentMonth =
+          tDate.getMonth() === currentMonth &&
+          tDate.getFullYear() === currentYear;
+        return isCurrentMonth;
+      });
+      return filtered;
+    }
+  };
+
+  useEffect(() => {
+    if (transactions.length > 0) {
+      const testDate = new Date(transactions[0].date);
     }
   }, [transactions]);
 
-  // Function to handle successful scan from ScannerModal
   const handleScanSuccess = (parsedData) => {
-    setIsScannerOpen(false); 
-    setScanMessage(`Importação concluída: ${parsedData.length} itens adicionados.`);
+    setIsScannerOpen(false);
+    setScanMessage(
+      `Importação concluída: ${parsedData.length} itens adicionados.`
+    );
   };
 
-  // --- Conditional Rendering ---
+  const balanceDetails = calculateBalance(); // Calcula os detalhes do saldo
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <p className="text-lg text-gray-700">Carregando suas finanças...</p>
-      </div>
+      <Loading/>
     );
   }
 
+
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <p className="text-lg text-red-600">Erro: {error}</p>
+      <div className="flex justify-center items-center h-screen bg-[#191919] text-[#EF4444]">
+        <p className="text-lg">Erro: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-extrabold mb-8 text-center text-gray-800">Gerenciamento de Finanças</h1>
+    <div className="bg-[url('https://i.pinimg.com/736x/09/8e/15/098e15db6e93a2fe19d7ddcc5ee9beee.jpg')] bg-cover bg-center bg-no-repeat">
+      <div className="container mx-auto p-3 md:p-8 backdrop-blur-2xl bg-black/70  min-h-screen text-[#f9f2e7]">
+        <header className="flex justify-between items-center mb-8 pt-4">
+          <h1 className="text-2xl font-bold text-center flex-grow text-[#f9f2e7]">
+            Finanças
+          </h1>
+          <button
+            onClick={() => {
+              setIsScannerOpen(true);
+              setScanMessage("");
+            }}
+            className="bg-[#00a8c6] hover:bg-[#40c0cb] text-[#f9f2e7] absolute right-4 font-bold p-2 rounded-full flex items-center justify-center transition duration-300 ease-in-out transform hover:scale-105"
+            aria-label="Escanear Boleto/Fatura"
+          >
+            <QrCodeScannerIcon sx={{ fontSize: 24 }} />
+          </button>
+        </header>
 
-      {/* Botão para abrir o scanner */}
-      <div className="flex justify-center mb-8">
-        <button
-          onClick={() => {
-            setIsScannerOpen(true);
-            setScanMessage(''); 
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition duration-300 ease-in-out transform hover:scale-105"
-        >
-          <ScannerIcon /> Escanear Boleto/Fatura
-        </button>
-      </div>
-
-      {scanMessage && ( 
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
-          <p className="font-bold">Sucesso!</p>
-          <p>{scanMessage}</p>
-        </div>
-      )}
-
-      {/* Current Balance */}
-      <section className="bg-white p-6 rounded-lg shadow-xl mb-8 border border-gray-200 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
-          <BalanceIcon /> Saldo Atual:
-        </h2>
-        <p className="text-3xl font-bold text-green-600">{calculateBalance()}</p>
-      </section>
-
-      {/* Financial Goals/Objectives */}
-      <section className="bg-white p-6 rounded-lg shadow-xl mb-8 border border-gray-200">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <GoalsIcon /> Suas Metas/Objetivos
-        </h2>
-        {goals.length > 0 ? (
-          <ul className="list-disc list-inside text-gray-700 space-y-2">
-            {goals.map((goal, index) => (
-              <li key={index} className="text-lg">{goal}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-600">Nenhuma meta definida ainda. Vá para o perfil para definir suas metas!</p>
-        )}
-      </section>
-
-      {/* Pie Chart of Expenses (Recharts) */}
-      <section className="bg-white p-6 rounded-lg shadow-xl mb-8 border border-gray-200">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <ChartIcon /> Despesas Totais (Gráfico)
-        </h2>
-        {getExpenseDataForChart().length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={getExpenseDataForChart()}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-                label={({ name, percent, value }) => value > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : ''} 
-              >
-                {getExpenseDataForChart().map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-gray-600 text-center">Nenhuma despesa registrada para o gráfico.</p>
-        )}
-      </section>
-
-      {/* Monthly Spending Progress Bar */}
-      <section className="bg-white p-6 rounded-lg shadow-xl mb-8 border border-gray-200">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <ProgressIcon /> Gastos do Mês
-        </h2>
-        <div className="text-center mb-4">
-          <p className="text-xl font-bold text-gray-800">
-            {getMonthlyExpenses().toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} / {getMonthlyBudget().toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </p>
-          <p className="text-sm text-gray-600">Gastos atuais vs. Orçamento mensal</p>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-4">
+        {scanMessage && (
           <div
-            className="bg-red-500 h-4 rounded-full"
-            style={{ width: `${Math.min(100, (getMonthlyExpenses() / Math.max(1, getMonthlyBudget())) * 100)}%` }}
-          ></div>
-        </div>
-        {getMonthlyBudget() > 0 && getMonthlyExpenses() > getMonthlyBudget() && (
-          <p className="text-red-600 text-sm mt-2 text-center font-semibold">Você excedeu seu orçamento este mês!</p>
+            className="bg-[#aee239] bg-opacity-20 border-l-4 border-[#aee239] text-[#f9f2e7] p-4 mb-6 rounded-lg"
+            role="alert"
+          >
+            <p className="font-bold text-base">Sucesso!</p>
+            <p className="text-sm">{scanMessage}</p>
+          </div>
         )}
-        {getMonthlyBudget() <= 0 && (
-          <p className="text-orange-500 text-sm mt-2 text-center">Defina um orçamento mensal em seu perfil para acompanhar seus gastos!</p>
-        )}
-      </section>
 
-      {/* Monthly Transaction History */}
-      <section className="bg-white p-6 rounded-lg shadow-xl mb-8 border border-gray-200">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <HistoryIcon /> Histórico de Movimentações
-        </h2>
-        {transactions.length > 0 ? (
-          <ul className="space-y-3">
-            {transactions.map(t => (
-              <li key={t.id} className="flex justify-between items-center p-3 border-b border-gray-100 last:border-b-0">
-                <div>
-                  <p className="font-semibold text-gray-800">{t.description}</p>
-                  <p className="text-sm text-gray-500">{t.category} - {new Date(t.date).toLocaleDateString('pt-BR')}</p>
-                </div>
-                <p className={`font-bold ${t.type === 'expense' ? 'text-red-500' : 'text-green-500'}`}>
-                  {t.type === 'expense' ? '-' : '+'}{parseFloat(t.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+        <section className="backdrop-blur-lg rounded-lg mb-8">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex flex-col items-start backdrop-blur-lg rounded-lg">
+              <div className="bg-[#00a8c6]/10 backdrop-blur-lg p-2 rounded-lg w-full">
+                <h3 className="text-lg font-medium text-[#f9f2e7] flex items-center gap-2 mb-2">
+                  <AccountBalanceWalletIcon
+                    sx={{ color: "#00a8c6", fontSize: 20 }}
+                  />
+                  Saldo na Mão:
+                </h3>
+                <p className="text-3xl font-bold text-[#aee239] mb-4">
+                  {balanceDetails.balance}
                 </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-600 text-center">Nenhuma movimentação registrada ainda.</p>
-        )}
-      </section>
 
-      {/* Scanner Modal */}
-      {isScannerOpen && (
-        <ScannerModal
-          onClose={() => setIsScannerOpen(false)}
-          onScanSuccess={handleScanSuccess} 
-          userId={userId}
-          db={db}
-        />
-      )}
+                <div className="w-full flex justify-between items-center text-base">
+                  <div className="flex items-center gap-1 text-[#aee239]">
+                    <ArrowUpwardIcon sx={{ fontSize: 18 }} />
+                    <span>Receitas: {balanceDetails.income}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[#FF8042]">
+                    <ArrowDownwardIcon sx={{ fontSize: 18 }} />
+                    <span>Despesas: {balanceDetails.expenses}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-opacity-70 backdrop-blur-lg  rounded-lg mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-[#f9f2e7] flex items-center gap-2">
+            <EmojiEventsIcon sx={{ color: "#00a8c6", fontSize: 20 }} /> Suas
+            metas
+          </h2>
+          {goals.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {goals.map((goal) => {
+                const progress = Math.min(
+                  100,
+                  (goal.currentAmount / goal.targetAmount) * 100 || 0
+                );
+                const radius = 40;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (progress / 100) * circumference;
+
+                return (
+                  <div
+                    key={goal.id}
+                    className="flex items-center gap-4 bg-opacity-70 backdrop-blur-lg p-4 rounded-lg border border-gray-800"
+                  >
+                    {/* Barra de progresso circular */}
+                    <div className="max-w-12 max-h-24">
+                      <svg className="w-full h-full" viewBox="0 0 100 100">
+                        <circle
+                          className="text-gray-700"
+                          strokeWidth="8"
+                          stroke="currentColor"
+                          fill="transparent"
+                          r={radius}
+                          cx="50"
+                          cy="50"
+                        />
+                        <circle
+                          className="text-[#aee239]"
+                          strokeWidth="8"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={offset}
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="transparent"
+                          r={radius}
+                          cx="50"
+                          cy="50"
+                          transform="rotate(-90 50 50)"
+                        />
+                        <text
+                          x="50"
+                          y="50"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          className="text-lg font-bold text-[#f9f2e7]"
+                          fill="#f9f2e7"
+                        >
+                          {`${progress.toFixed(0)}%`}
+                        </text>
+                      </svg>
+                    </div>
+
+                    {/* Título e descrição */}
+                    <div className="flex flex-col">
+                      <h3 className="text-sm font-semibold text-[#f9f2e7]">
+                        {goal.name}
+                      </h3>
+                      <p className="text-xs text-gray-400">
+                        {goal.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-base">
+              Nenhuma meta de grana definida ainda. Bora planejar!
+            </p>
+          )}
+        </section>
+
+        {/* Seção de Despesas por Categoria (Gráfico) */}
+        <section className="backdrop-blur-lg rounded-lg mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-[#f9f2e7] flex items-center gap-2">
+            <PieChartIcon sx={{ color: "#00a8c6", fontSize: 20 }} /> Onde sua
+            Grana Vai
+          </h2>
+          {getExpenseDataForChart().length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={getExpenseDataForChart()}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, percent, value }) =>
+                    value > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
+                  }
+                >
+                  {getExpenseDataForChart().map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#191919",
+                    borderColor: "#40c0cb",
+                    color: "#f9f2e7",
+                  }}
+                  itemStyle={{ color: "#f9f2e7" }}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-400 text-center text-base">
+              Nenhuma despesa registrada para o gráfico.
+            </p>
+          )}
+        </section>
+
+        {/* Seção de Histórico de Movimentações Recentes */}
+        <section className="backdrop-blur-lg rounded-lg mb-12">
+          <h2 className="text-xl font-semibold mb-4 text-[#f9f2e7] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <HistoryIcon sx={{ color: "#00a8c6", fontSize: 20 }} /> Últimas
+              Movimentações
+            </div>
+            <button
+              onClick={() => setIsHistoryModalOpen(true)}
+              className="text-[#f9f2e7] font-semibold py-2 px-4 rounded-lg text-sm transition duration-200 ease-in-out"
+            >
+              Ver Tudo
+            </button>
+          </h2>
+          {getFilteredTransactions().length > 0 ? (
+            <ul className="space-y-3">
+              {getFilteredTransactions()
+                .slice(0, 5)
+                .map(
+                  (
+                    t // Limita a 5 transações recentes
+                  ) => (
+                    <li
+                      key={t.id}
+                      className="flex justify-between items-center p-3 bg-[#191919] bg-opacity-70 backdrop-blur-lg rounded-lg border border-gray-800"
+                    >
+                      <div>
+                        <p className="font-semibold text-[#f9f2e7] text-base">
+                          {t.description}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {new Date(t.date).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                      <p
+                        className={`font-bold text-base ${
+                          t.type === "expense"
+                            ? "text-[#FF8042]"
+                            : "text-[#aee239]"
+                        }`}
+                      >
+                        {t.type === "expense" ? "-" : "+"}
+                        {parseFloat(t.amount).toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </p>
+                    </li>
+                  )
+                )}
+            </ul>
+          ) : (
+            <p className="text-gray-400 text-center text-base">
+              Nenhuma movimentação registrada para o mês atual.
+            </p>
+          )}
+        </section>
+
+        {isScannerOpen && (
+          <ScannerModal
+            onClose={() => setIsScannerOpen(false)}
+            onScanSuccess={handleScanSuccess}
+            userId={userId}
+            db={db}
+          />
+        )}
+
+        {isHistoryModalOpen && (
+          <HistoryMonthSelectorModal
+            transactions={transactions}
+            onClose={() => setIsHistoryModalOpen(false)}
+            userData={userData}
+            userId={userId}
+            db={db}
+          />
+        )}
+      </div>
     </div>
   );
 }

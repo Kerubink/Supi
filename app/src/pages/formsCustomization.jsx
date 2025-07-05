@@ -1,4 +1,3 @@
-// formsCustomization.jsx
 import React, { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -6,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
-// Importa os serviços Firebase do seu arquivo de configuração
 import { auth, db } from "../config/firebaseconfig";
 
 function FormsCustomization() {

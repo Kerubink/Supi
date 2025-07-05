@@ -1,0 +1,131 @@
+.birdLoader {
+  position: relative;
+  height: 200px;
+  width: 200px;
+  display: grid;
+  grid-template-rows: 35px 65px 65px 35px;
+  grid-template-columns: 35px 30px 35px;
+}
+
+.birdLoader__blue1 {
+  grid-column: 1/4;
+  grid-row: 1/5;
+  width: 100px;
+  height: 200px;
+  border-radius: 100px 0 0 100px;
+  background: #00a8c6;
+  transform-origin: right center;
+  animation: blue1 3s ease-in-out infinite; /* Nome da animação corrigido */
+}
+
+.birdLoader__white {
+  grid-column: 2/4;
+  grid-row: 2/4;
+  height: 130px;
+  width: 65px;
+  border-radius: 65px 0 0 65px;
+  background: #fff;
+  transform-origin: right center;
+  animation: white 3s ease-in-out infinite;
+}
+
+.birdLoader__grey {
+  grid-column: 2/4;
+  grid-row: 3/4;
+  height: 65px;
+  width: 65px;
+  border-radius: 0 0 0 65px;
+  background-color: #e7e7e7;
+  transform-origin: right top;
+  animation: grey 3s ease-in-out infinite;
+}
+
+.birdLoader__yellow {
+  grid-column: -1;
+  grid-row: 2/3;
+  height: 65px;
+  width: 65px;
+  border-radius: 0 65px 0 0;
+  background-color: #f7ce42;
+  transform-origin: left bottom;
+  animation: yellow 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+.birdLoader__orange {
+  grid-column: -1;
+  grid-row: 3/4;
+  height: 35px;
+  width: 35px;
+  border-radius: 0 0 30px 0;
+  background-color: #f7a500;
+  transform-origin: left top;
+  animation: orange 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+.birdLoader__blue {
+  grid-column: 3/4;
+  grid-row: 2/3;
+  align-self: end;
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  background-color: #18233e;
+  animation: blue 3s ease-in-out infinite;
+}
+
+/* Adicione esta nova animação para o blue1 */
+@keyframes blue1 {
+  25%, 50% {
+    transform: rotate(180deg);
+  }
+  75%, 100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes white {
+  25%, 50% {
+    transform: rotate(-180deg);
+  }
+  75%, 100% {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes grey {
+  25%, 50% {
+    transform: rotate(-90deg);
+  }
+  75%, 100% {
+    transform: rotate(0);
+  }
+}
+
+@keyframes yellow {
+  25%, 50% {
+    transform: rotate(-90deg);
+  }
+  75%, 100% {
+    transform: rotate(0);
+  }
+}
+
+@keyframes orange {
+  25%, 50% {
+    transform: rotate(90deg);
+  }
+  75%, 100% {
+    transform: rotate(0);
+  }
+}
+
+@keyframes blue {
+  25%, 50% {
+    transform: translateX(100%);
+  }
+  75%, 100% {
+    transform: translateX(0);
+  }
+}
