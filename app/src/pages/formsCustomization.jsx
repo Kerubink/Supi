@@ -13,9 +13,8 @@ function FormsCustomization() {
   const [userId, setUserId] = useState(null);
   const [setIsAuthReady] = useState(false);
 
-  // Estados para o formulário multi-passos
-  const [currentStep, setCurrentStep] = useState(0); // Começa no índice 0 para a nova tela inicial
-  const totalSteps = 9; // Total de perguntas (8 perguntas + 1 tela inicial)
+  const [currentStep, setCurrentStep] = useState(0); 
+  const totalSteps = 9; 
 
   const [formData, setFormData] = useState({
     objective: [],
@@ -105,19 +104,16 @@ function FormsCustomization() {
     });
   };
 
-  // Função para avançar para o próximo passo
   const handleNextStep = () => {
     setCurrentStep((prevStep) => Math.min(prevStep + 1, totalSteps - 1));
     setMessage("");
   };
 
-  // Função para voltar para o passo anterior
   const handlePreviousStep = () => {
     setCurrentStep((prevStep) => Math.max(prevStep - 1, 0));
     setMessage("");
   };
 
-  // Manipulador para o envio final do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -153,7 +149,6 @@ function FormsCustomization() {
     }
   };
 
-  // Renderiza o conteúdo do passo atual
   const renderStep = () => {
     switch (currentStep) {
       case 0:
@@ -177,7 +172,7 @@ function FormsCustomization() {
             </div>
           </div>
         );
-      case 1: // Antigo Step 0
+      case 1:
         return (
           <div>
             <img src="/Meta.svg" alt="" />

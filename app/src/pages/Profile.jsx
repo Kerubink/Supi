@@ -4,11 +4,11 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebaseconfig";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import Loading from "../components/loading/loading";
+import { usePWAInstall } from "../hooks/usePWAInstall"; // 👈 hook importado
 
-const PRIMARY_BG = "#191919"; 
+const PRIMARY_BG = "#191919";
 const SECTION_BG = "#282828";
 const TEXT_COLOR = "#f9f2e7";
 const ACCENT_BLUE = "#00a8c6";
@@ -21,6 +21,8 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  const { canInstall, installApp } = usePWAInstall(); // 👈 hook usado aqui
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -62,10 +64,9 @@ function Profile() {
     fetchUserData();
   }, [userId]);
 
-  if (loading) {
-    return <Loading />;
-  }
+  
 
+  if (loading) return <Loading />;
   if (error) {
     return (
       <div className={`flex justify-center items-center h-screen bg-[${PRIMARY_BG}] text-[#EF4444]`}>
@@ -73,7 +74,6 @@ function Profile() {
       </div>
     );
   }
-
   if (!userData) {
     return (
       <div className={`flex flex-col justify-center items-center h-screen bg-[${PRIMARY_BG}] text-[${TEXT_COLOR}]`}>
@@ -92,7 +92,7 @@ function Profile() {
         </header>
 
         {/* Seção de Saldo */}
-        <section className={`mb-3 bg-[${SECTION_BG}] bg-opacity-70 backdrop-blur-lg  rounded-4xl`}>
+        <section className="mb-3 bg-opacity-70 backdrop-blur-lg rounded-4xl">
           <div className="space-y-1">
             <p className="text-2xl font-black">
               R$ {userData.currentBalance ? parseFloat(userData.currentBalance).toFixed(2) : "0,00"}
@@ -103,78 +103,56 @@ function Profile() {
           </div>
         </section>
 
-        <section className={`mb-8 bg-[${SECTION_BG}] bg-opacity-70 backdrop-blur-lg rounded-4xl`}>
+        {/* Badges */}
+        <section className="mb-8 bg-opacity-70 backdrop-blur-lg rounded-4xl">
           <div className="grid grid-cols-3 gap-4">
-            <div className={`flex flex-col items-center p-4 rounded-xl bg-[${PRIMARY_BG}] border border-gray-600`}>
-              <div className={`w-16 h-16 rounded-full bg-[${ACCENT_BLUE}] bg-opacity-20 flex items-center justify-center mb-2`}>
-                <EmojiEventsIcon sx={{ color: ACCENT_BLUE, fontSize: 32 }} />
-              </div>
-              <span className="text-sm font-medium">Iniciante</span>
-            </div>
-            
-            <div className={`flex flex-col items-center p-4 rounded-xl bg-[${PRIMARY_BG}] border border-gray-600`}>
-              <div className={`w-16 h-16 rounded-full bg-[${ACCENT_GREEN}] bg-opacity-20 flex items-center justify-center mb-2`}>
-                <EmojiEventsIcon sx={{ color: ACCENT_GREEN, fontSize: 32 }} />
-              </div>
-              <span className="text-sm font-medium">Economista</span>
-            </div>
-            
-            <div className={`flex flex-col items-center p-4 rounded-xl bg-[${PRIMARY_BG}] border border-gray-600`}>
-              <div className={`w-16 h-16 rounded-full bg-[${ACCENT_CYAN}] bg-opacity-20 flex items-center justify-center mb-2`}>
-                <EmojiEventsIcon sx={{ color: ACCENT_CYAN, fontSize: 32 }} />
-              </div>
-              <span className="text-sm font-medium">Investidor</span>
-            </div>
+            {[["Iniciante", ACCENT_BLUE], ["Economista", ACCENT_GREEN], ["Investidor", ACCENT_CYAN]].map(
+              ([label, color], index) => (
+                <div
+                  key={index}
+                  className={`flex flex-col items-center p-4 rounded-xl bg-[${PRIMARY_BG}] border border-gray-600`}
+                >
+                  <div className={`w-16 h-16 rounded-full bg-[${color}] bg-opacity-20 flex items-center justify-center mb-2`}>
+                    <EmojiEventsIcon sx={{ color, fontSize: 32 }} />
+                  </div>
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
+              )
+            )}
           </div>
         </section>
 
-        <section className={`mb-8  bg-opacity-70 backdrop-blur-lg rounded-4xl`}>
+        {/* Configurações */}
+        <section className="mb-8 bg-opacity-70 backdrop-blur-lg rounded-4xl">
           <h2 className="text-xl font-bold mb-4">Configurações</h2>
-          
           <div className="space-y-4">
-            <div 
-              className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
-              onClick={() => console.log("Minha Conta clicado")}
-            >
-              <span className="font-medium">Minha Conta</span>
-              <span className="text-gray-400">→</span>
-            </div>
-            
-            {/* Item 2 */}
-            <div 
-              className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
-              onClick={() => console.log("Segurança clicado")}
-            >
-              <span className="font-medium">Segurança e Privacidade</span>
-              <span className="text-gray-400">→</span>
-            </div>
-            
-            {/* Item 3 */}
-            <div 
-              className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
-              onClick={() => console.log("Notificações clicado")}
-            >
-              <span className="font-medium">Notificações</span>
-              <span className="text-gray-400">→</span>
-            </div>
-            
-            {/* Item 4 */}
-            <div 
-              className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
-              onClick={() => console.log("Idioma clicado")}
-            >
-              <span className="font-medium">Idioma e Moeda</span>
-              <span className="text-gray-400">→</span>
-            </div>
-            
-            {/* Item 5 */}
-            <div 
-              className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
-              onClick={() => console.log("Assinatura clicado")}
-            >
-              <span className="font-medium">Assinatura/Plano</span>
-              <span className="text-gray-400">→</span>
-            </div>
+            {[
+              "Minha Conta",
+              "Segurança e Privacidade",
+              "Notificações",
+              "Idioma e Moeda",
+              "Assinatura/Plano",
+            ].map((item, index) => (
+              <div
+                key={index}
+                className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
+                onClick={() => console.log(`${item} clicado`)}
+              >
+                <span className="font-medium">{item}</span>
+                <span className="text-gray-400">→</span>
+              </div>
+            ))}
+
+            {/* BOTÃO DE INSTALAR APP */}
+            {canInstall && (
+              <div
+                className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
+                onClick={installApp}
+              >
+                <span className="font-medium">Instalar App</span>
+                <span className="text-gray-400">⬇️</span>
+              </div>
+            )}
           </div>
         </section>
       </div>

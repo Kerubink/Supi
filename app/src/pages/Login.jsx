@@ -255,9 +255,9 @@ function LoginPage() {
                 </label>
                 <input
                   required
-                  className="flex-1 p-4 focus:outline-none pr-10" // Ajuste o padding para o ícone
+                  className="flex-1 p-4 focus:outline-none pr-10" 
                   id="password"
-                  type={isPasswordVisible ? "text" : "password"} // Tipo dinâmico
+                  type={isPasswordVisible ? "text" : "password"}
                   value={password}
                   placeholder="Senha"
                   onChange={(e) => setPassword(e.target.value)}
@@ -265,7 +265,7 @@ function LoginPage() {
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer focus:outline-none"
-                  onClick={() => setIsPasswordVisible(!isPasswordVisible)} // Alterna a visibilidade
+                  onClick={() => setIsPasswordVisible(!isPasswordVisible)} 
                 >
                   {isPasswordVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 </button>

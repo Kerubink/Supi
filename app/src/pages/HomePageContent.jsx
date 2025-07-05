@@ -194,7 +194,7 @@ function DashboardHomePage() {
         </header>
 
         <section
-          className={`mb-8 bg-[${SECTION_BG}] bg-opacity-70 backdrop-blur-lg p-6 rounded-4xl border border-gray-700`}
+          className={`mb-8  bg-opacity-70 backdrop-blur-lg p-6 rounded-4xl border border-gray-700`}
         >
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <AccountBalanceWalletIcon sx={{ color: ACCENT_BLUE }} /> Finanças
@@ -218,7 +218,7 @@ function DashboardHomePage() {
         </section>
 
         <section
-          className={`mb-8 bg-[${SECTION_BG}] bg-opacity-70 backdrop-blur-lg rounded-lg px-1`}
+          className={`mb-8  bg-opacity-70 backdrop-blur-lg rounded-lg px-1`}
         >
           <div className="grid grid-cols-7 text-center gap-2">
             {getWeeklyCalendarData().map((day, index) => (
@@ -245,7 +245,7 @@ function DashboardHomePage() {
         </section>
 
         <section
-          className={`mb-8 bg-[${SECTION_BG}] bg-opacity-70 backdrop-blur-lg rounded-lg`}
+          className={`mb-8 bg-opacity-70 backdrop-blur-lg rounded-lg`}
         >
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
             Progresso
@@ -271,7 +271,7 @@ function DashboardHomePage() {
         </section>
 
         <section
-          className={`bg-[${SECTION_BG}] bg-opacity-70 backdrop-blur-lg rounded-lg`}
+          className={` bg-opacity-70 backdrop-blur-lg rounded-lg`}
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -305,7 +305,7 @@ function DashboardHomePage() {
                 </div>
 
                 <span
-                  className={`inline-block bg-[${ACCENT_BLUE}] bg-opacity-20 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full`}
+                  className={`inline-block  bg-opacity-20 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full`}
                 >
                   {exercise.category}
                 </span>
