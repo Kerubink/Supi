@@ -19,6 +19,8 @@ import { auth, db } from "./config/firebaseconfig";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore"; 
 import DashboardHomePage from "./pages/HomePageContent";
+import Loading from "./components/loading/loading";
+
 
 function PrivateRoute({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,7 +35,7 @@ function PrivateRoute({ children }) {
   }, []);
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return <Loading/>;
   }
 
   return isAuthenticated ? children : <Navigate to="/login" replace />;
@@ -75,7 +77,7 @@ function OnboardingGuard({ children }) {
   }, []);
 
   if (loadingOnboarding) {
-    return <div>Verificando perfil...</div>; 
+    return <Loading/>;
   }
 
   if (userId && !hasCompletedOnboarding) {

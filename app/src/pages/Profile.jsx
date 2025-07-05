@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebaseconfig";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import Loading from "../components/loading/loading";
-import { usePWAInstall } from "../hooks/usePWAInstall"; // 👈 hook importado
+import { usePWAInstall } from "../hooks/usePWAInstall";
 
 const PRIMARY_BG = "#191919";
 const SECTION_BG = "#282828";
@@ -22,7 +22,7 @@ function Profile() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const { canInstall, installApp } = usePWAInstall(); // 👈 hook usado aqui
+  const { canInstall, installApp } = usePWAInstall();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -64,7 +64,14 @@ function Profile() {
     fetchUserData();
   }, [userId]);
 
-  
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (error) {
+      console.error("Erro ao deslogar:", error);
+    }
+  };
 
   if (loading) return <Loading />;
   if (error) {
@@ -143,6 +150,7 @@ function Profile() {
               </div>
             ))}
 
+            {/* Botão Instalar App (PWA) */}
             {canInstall && (
               <div
                 className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
@@ -152,6 +160,15 @@ function Profile() {
                 <span className="text-gray-400">⬇️</span>
               </div>
             )}
+
+            {/* Botão Logout */}
+            <div
+              className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-red-700/50 transition-colors`}
+              onClick={handleLogout}
+            >
+              <span className="font-medium text-red-400">Sair do App</span>
+              <span className="text-red-400">⎋</span>
+            </div>
           </div>
         </section>
       </div>

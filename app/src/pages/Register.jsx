@@ -25,7 +25,7 @@ function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [age, setAge] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [formMessage, setFormMessage] = useState(""); // Único estado para todas as mensagens
+  const [formMessage, setFormMessage] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
     useState(false);
@@ -33,7 +33,7 @@ function RegisterPage() {
   const navigate = useNavigate();
 
   const resetMessages = () => {
-    setFormMessage(""); // Reseta apenas a mensagem geral
+    setFormMessage(""); 
   };
 
   const createUserProfile = async (user, name, userEmail, userAge = null) => {
@@ -55,9 +55,9 @@ function RegisterPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    resetMessages(); // Limpa mensagens anteriores
+    resetMessages(); 
 
-    let validationErrors = []; // Array para coletar erros de validação
+    let validationErrors = [];
 
     if (fullName.trim() === "") {
       validationErrors.push("Por favor, digite seu nome completo.");

@@ -4,6 +4,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import Loading from "../components/loading/loading";
 
 import { auth, db } from "../config/firebaseconfig";
 
@@ -459,9 +460,7 @@ function FormsCustomization() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <p className="text-xl text-gray-700">Carregando perfil do usuário...</p>
-      </div>
+      <Loading />
     );
   }
 

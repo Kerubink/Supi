@@ -15,13 +15,13 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import Loading from "../components/loading/loading";
 
 const PRIMARY_BG = "#191919"; 
-const SECTION_BG = "#282828"; // Cinza mais claro para seções
-const TEXT_COLOR = "#f9f2e7"; // Laranja Claro (Branco)
-const ACCENT_BLUE = "#00a8c6"; // Azure vívido
-const ACCENT_CYAN = "#40c0cb"; // Ciano
-const ACCENT_GREEN = "#aee239"; // Verde
-const ACCENT_YELLOW_GREEN = "#8fbe00"; // Verde amarelado vívido
-const ACCENT_ORANGE = "#FF8042"; // Laranja para despesas ou alertas
+const SECTION_BG = "#282828";
+const TEXT_COLOR = "#f9f2e7"; 
+const ACCENT_BLUE = "#00a8c6"; 
+const ACCENT_CYAN = "#40c0cb"; 
+const ACCENT_GREEN = "#aee239";
+const ACCENT_YELLOW_GREEN = "#8fbe00";
+const ACCENT_ORANGE = "#FF8042";
 
 function DashboardHomePage() {
   const [userId, setUserId] = useState(null);

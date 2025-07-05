@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import GoogleIcon from "@mui/icons-material/Google";
 import AppleIcon from '@mui/icons-material/Apple';
 import Button from "@mui/material/Button";
-import { auth, db } from "../config/firebaseconfig"; // Importe 'db' aqui
+import { auth, db } from "../config/firebaseconfig"; 
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -11,13 +11,13 @@ import {
   sendPasswordResetEmail,
   OAuthProvider,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore"; // Importe Firestore
+import { doc, setDoc } from "firebase/firestore";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
-import VisibilityIcon from '@mui/icons-material/Visibility'; // Importe o ícone de visibilidade
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'; // Importe o ícone de visibilidade off
+import VisibilityIcon from '@mui/icons-material/Visibility'; 
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'; 
 
 
 function LoginPage() {
