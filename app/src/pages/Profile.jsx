@@ -143,7 +143,6 @@ function Profile() {
               </div>
             ))}
 
-            {/* BOTÃO DE INSTALAR APP */}
             {canInstall && (
               <div
                 className={`flex justify-between items-center p-4 rounded-xl border border-gray-600 cursor-pointer hover:bg-[${PRIMARY_BG}]/50 transition-colors`}
