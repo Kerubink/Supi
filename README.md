@@ -2,7 +2,9 @@
 
 Bem-vindo(a) ao repositório do protótipo da **Plataforma SUPI**, desenvolvido como parte do **Hackathon PWC + Fiap**. Este projeto representa uma solução inovadora em fase inicial, focada em ajudar os utilizadores a gerir as suas finanças pessoais de forma interativa e educativa.
 
-## 🔎 Sobre o Projeto
+> ⚠️ **Importante:** Este README está na branch `main`, utilizada para documentação. O código-fonte funcional do protótipo encontra-se na branch [`release1.0`](https://github.com/seu-usuario/seu-repositorio/tree/release1.0).
+
+## 🔍 Sobre o Projeto
 
 A Plataforma SUPI é um protótipo concebido para demonstrar um conceito e explorar funcionalidades-chave dentro de um ambiente de desenvolvimento rápido. Nosso objetivo é proporcionar uma interface intuitiva para:
 
