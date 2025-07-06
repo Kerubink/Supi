@@ -1,4 +1,3 @@
-// transactionService.js
 const ALLOWED_CATEGORIES = [
   "Alimentação",
   "Transporte",

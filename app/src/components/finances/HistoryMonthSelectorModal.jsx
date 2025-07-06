@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { generateFinancialReport } from "../../config/geminiConfig";
-// Removido: import { useTheme } from "@mui/material/styles";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -72,18 +71,31 @@ function HistoryMonthSelectorModal({
   const [reportData, setReportData] = useState(null);
   const [reportError, setReportError] = useState(null);
 
-  // Removido: const theme = useTheme();
-  // Removido: const isDarkMode = theme.palette.mode === "dark";
-
   useEffect(() => {
     if (!transactions || transactions.length === 0) {
       setAvailableMonths([]);
       return;
     }
-    const months = [
-      ...new Set(transactions.map((t) => t.date.substring(0, 7))),
-    ];
-    months.sort((a, b) => b.localeCompare(a));
+
+    // Extrai meses únicos formatados como "YYYY-MM"
+    const monthsSet = new Set();
+    transactions.forEach((t) => {
+      if (t.date && typeof t.date === 'string') {
+        try {
+          const date = new Date(t.date);
+          if (!isNaN(date)) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            monthsSet.add(`${year}-${month}`);
+          }
+        } catch (e) {
+          console.error("Data inválida:", t.date, e);
+        }
+      }
+    });
+
+    const months = Array.from(monthsSet);
+    months.sort((a, b) => b.localeCompare(a)); // Ordena do mais recente para o mais antigo
     setAvailableMonths(months);
     const currentMonth = new Date().toISOString().substring(0, 7);
     const index = months.indexOf(currentMonth);
@@ -117,8 +129,26 @@ function HistoryMonthSelectorModal({
 
   const handleChange = (event, newValue) => setTabValue(newValue);
 
-  const getTransactionsForMonth = (monthYear) =>
-    transactions.filter((t) => t.date.startsWith(monthYear));
+  const getTransactionsForMonth = (monthYear) => {
+    const filtered = transactions.filter((t) => {
+      if (!t.date || typeof t.date !== 'string') return false;
+      
+      try {
+        const transactionDate = new Date(t.date);
+        const transactionYear = transactionDate.getFullYear();
+        const transactionMonth = (transactionDate.getMonth() + 1).toString().padStart(2, '0');
+        const transactionMonthYear = `${transactionYear}-${transactionMonth}`;
+        
+        return transactionMonthYear === monthYear;
+      } catch (e) {
+        console.error("Data inválida:", t.date, e);
+        return false;
+      }
+    });
+
+    // Ordena por data (da mais recente para a mais antiga)
+    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
 
   const handleGenerateReport = async () => {
     if (loadingReport || !userId || !db) return;
@@ -205,18 +235,15 @@ function HistoryMonthSelectorModal({
             {availableMonths.map((m, i) => (
               <Tab
                 key={m}
-                label={new Date(m + "-01").toLocaleDateString("pt-BR", {
-                  month: "long",
-                  year: "numeric",
-                })}
+                label={m.replace('-', '/')}
                 {...a11yProps(i)}
                 sx={{
-                  color: "#ffffff", 
+                  color: "#ffffff",
                   "&.Mui-selected": {
-                    color: "#3B82F6", 
+                    color: "#3B82F6",
                   },
                   "&:hover": {
-                    color: "gray.200", 
+                    color: "gray.200",
                   },
                 }}
               />
@@ -224,7 +251,6 @@ function HistoryMonthSelectorModal({
           </Tabs>
         </Box>
 
-        {/* Conteúdo das Abas */}
         <div className="overflow-y-auto flex-grow">
           {availableMonths.map((monthYear, i) => (
             <CustomTabPanel key={monthYear} value={tabValue} index={i}>
@@ -247,8 +273,8 @@ function HistoryMonthSelectorModal({
                 ) : reportData ? (
                   <Accordion
                     sx={{
-                      backgroundColor: "#1F2937", // Fundo do acordeão no dark mode
-                      color: "#F9FAFB", // Cor do texto do acordeão no dark mode
+                      backgroundColor: "#1F2937",
+                      color: "#F9FAFB",
                     }}
                   >
                     <AccordionSummary
@@ -256,10 +282,10 @@ function HistoryMonthSelectorModal({
                         <ArrowDropDownIcon sx={{ color: "gray.300" }} />
                       }
                       sx={{
-                        backgroundColor: "#1F2937", // Fundo do sumário do acordeão no dark mode
-                        color: "#F9FAFB", // Cor do texto do sumário no dark mode
+                        backgroundColor: "#1F2937",
+                        color: "#F9FAFB",
                         "&:hover": {
-                          backgroundColor: "#374151", // Cor de hover do sumário no dark mode
+                          backgroundColor: "#374151",
                         },
                       }}
                     >
@@ -270,9 +296,9 @@ function HistoryMonthSelectorModal({
                     <AccordionDetails
                       sx={{
                         borderTop: 1,
-                        borderColor: "gray.700", // Borda superior do detalhe no dark mode
-                        backgroundColor: "#1F2937", // Fundo do detalhe no dark mode
-                        color: "#E5E7EB", // Cor do texto do detalhe no dark mode
+                        borderColor: "gray.700",
+                        backgroundColor: "#1F2937",
+                        color: "#E5E7EB",
                       }}
                       className="space-y-2"
                     >

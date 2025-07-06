@@ -1,20 +1,15 @@
-// src/pages/FinancesPage.jsx
 import React, { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   doc,
   collection,
   query,
-  orderBy,
   onSnapshot,
   getDoc,
   setDoc,
-  addDoc,
 } from "firebase/firestore";
 import { auth, db } from "../config/firebaseconfig";
 
-
-// Imports for Recharts components needed for the chart
 import {
   ResponsiveContainer,
   PieChart,
@@ -24,12 +19,10 @@ import {
   Legend,
 } from "recharts";
 
-// Importa os componentes ScannerModal e HistoryMonthSelectorModal
 import ScannerModal from "../components/finances/ScannerModal";
 import HistoryMonthSelectorModal from "../components/finances/HistoryMonthSelectorModal";
 import Loading from "../components/loading/loading"; // Importa o componente de loading
 
-// Importa os ícones do Material UI
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import PieChartIcon from "@mui/icons-material/PieChart";
@@ -142,17 +135,21 @@ function FinancesPage() {
       );
 
       const transactionsColRef = collection(db, `users/${userId}/transactions`);
-      const q = query(transactionsColRef, orderBy("date", "desc"));
+      // Removido orderBy para evitar problemas de índice no Firestore, ordenar em memória
+      const q = query(transactionsColRef);
       const unsubscribeTransactions = onSnapshot(
         q,
         (snapshot) => {
           const fetchedTransactions = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
+            // Garante que a data seja uma string no formato YYYY-MM-DD
             date: doc.data().date?.toDate
               ? doc.data().date.toDate().toISOString().split("T")[0]
               : doc.data().date || new Date().toISOString().split("T")[0],
           }));
+          // Ordena as transações por data em ordem decrescente em memória
+          fetchedTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
           setTransactions(fetchedTransactions);
         },
         (err) => {
@@ -170,68 +167,46 @@ function FinancesPage() {
     }
   }, [userId, db, isAuthReady]);
 
-  const calculateBalance = () => {
-    const initialBalance = parseFloat(userData?.currentBalance || 0).toFixed(2);
-    const balanceSetDate = userData?.balanceSetDate;
+  // Função para calcular o saldo total (diretamente do DB)
+  const calculateOverallBalance = () => {
+    const balance = parseFloat(userData?.currentBalance || 0);
+    return balance.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  };
 
-    let totalExpenses = 0;
-    let totalIncome = 0;
-
-    const startBalanceDateObj = balanceSetDate
-      ? new Date(balanceSetDate)
-      : null;
+  // Nova função para calcular receitas e despesas do mês atual
+  const getMonthlySummary = () => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    let monthlyIncome = 0;
+    let monthlyExpenses = 0;
 
     transactions.forEach((t) => {
-      const transactionDateObj = new Date(t.date);
-
-      if (!startBalanceDateObj || transactionDateObj >= startBalanceDateObj) {
-        if (t.type === "expense") {
-          totalExpenses += parseFloat(t.amount || 0);
-        } else if (t.type === "income") {
-          totalIncome += parseFloat(t.amount || 0);
+      const tDate = new Date(t.date);
+      if (tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear) {
+        const amount = parseFloat(t.amount || 0);
+        if (t.type === "income") {
+          monthlyIncome += amount;
+        } else if (t.type === "expense") {
+          monthlyExpenses += amount;
         }
       }
     });
 
-    totalExpenses = parseFloat(totalExpenses.toFixed(2));
-    totalIncome = parseFloat(totalIncome.toFixed(2));
-
-    const calculatedResult = (
-      parseFloat(initialBalance) +
-      totalIncome -
-      totalExpenses
-    ).toFixed(2);
     return {
-      balance: parseFloat(calculatedResult).toLocaleString("pt-BR", {
+      income: monthlyIncome.toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",
       }),
-      income: totalIncome.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }),
-      expenses: totalExpenses.toLocaleString("pt-BR", {
+      expenses: monthlyExpenses.toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",
       }),
     };
   };
 
-  const getMonthlyExpenses = () => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const expensesThisMonth = transactions
-      .filter((t) => {
-        const tDate = new Date(t.date);
-        return (
-          t.type === "expense" &&
-          tDate.getMonth() === currentMonth &&
-          tDate.getFullYear() === currentYear
-        );
-      })
-      .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
-    return expensesThisMonth;
-  };
 
   const getMonthlyBudget = () => {
     return parseFloat(userData?.monthlyBudget || 0);
@@ -264,6 +239,7 @@ function FinancesPage() {
   const getFilteredTransactions = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
+    // Formato 'YYYY-MM' para comparação
     const currentMonthYear = `${currentYear}-${(currentMonth + 1)
       .toString()
       .padStart(2, "0")}`;
@@ -280,6 +256,7 @@ function FinancesPage() {
       });
       return filtered;
     } else {
+      // Filtra transações do mês atual para exibição
       const filtered = transactions.filter((t) => {
         const tDate = new Date(t.date);
         const isCurrentMonth =
@@ -304,7 +281,8 @@ function FinancesPage() {
     );
   };
 
-  const balanceDetails = calculateBalance(); // Calcula os detalhes do saldo
+  const overallBalance = calculateOverallBalance(); // Saldo total do DB
+  const monthlySummary = getMonthlySummary(); // Resumo de receitas e despesas do mês atual
 
   if (loading) {
     return (
@@ -351,17 +329,17 @@ function FinancesPage() {
                   Saldo na Mão:
                 </h3>
                 <p className="text-3xl font-bold text-[#aee239] mb-4">
-                  {balanceDetails.balance}
+                  {overallBalance}
                 </p>
 
                 <div className="w-full flex justify-between items-center text-base">
                   <div className="flex items-center gap-1 text-[#aee239]">
                     <ArrowUpwardIcon sx={{ fontSize: 18 }} />
-                    <span>Receitas: {balanceDetails.income}</span>
+                    <span>Receitas: {monthlySummary.income}</span>
                   </div>
                   <div className="flex items-center gap-1 text-[#FF8042]">
                     <ArrowDownwardIcon sx={{ fontSize: 18 }} />
-                    <span>Despesas: {balanceDetails.expenses}</span>
+                    <span>Despesas: {monthlySummary.expenses}</span>
                   </div>
                 </div>
               </div>
@@ -510,7 +488,7 @@ function FinancesPage() {
           {getFilteredTransactions().length > 0 ? (
             <ul className="space-y-3">
               {getFilteredTransactions()
-                .slice(0, 5)
+                .slice(0, 100) 
                 .map(
                   (
                     t 
