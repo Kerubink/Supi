@@ -1,4 +1,3 @@
-// src/utils/pdfUtils.js
 import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs/pdf.worker.js'; 
