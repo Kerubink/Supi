@@ -45,8 +45,7 @@ function LoginPage() {
       console.log("User profile created/updated in Firestore for UID:", user.uid);
     } catch (error) {
       console.error("Error creating user profile in Firestore:", error);
-      // Você pode definir uma mensagem de erro aqui se quiser notificar o usuário
-      // sobre falha na criação do perfil no Firestore.
+ 
       setFormMessage("Ocorreu um problema ao salvar seus dados de perfil. Por favor, tente novamente.");
     }
   };
@@ -198,6 +197,7 @@ function LoginPage() {
             <button
               type="button"
               onClick={handleAppleSignIn}
+              disabled={!window.AppleID}
               className="border border-white rounded-2xl p-3 flex items-center justify-center gap-2 hover:bg-gray-100/20"
             >
               <AppleIcon className="text-white" />

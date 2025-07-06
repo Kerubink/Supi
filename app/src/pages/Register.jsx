@@ -254,9 +254,7 @@ function RegisterPage() {
                 }}
               />
             </div>
-            {/* Mensagens de erro removidas daqui */}
           </div>
-          {/* Campo Senha */}
           <div>
             <div className="flex gap-1 items-center rounded-2xl bg-blue-200 pl-3 duration-300 border-gray-400 group delay-200 relative cursor-text *:cursor-text">
               <label htmlFor="passwordRegister">
@@ -282,9 +280,7 @@ function RegisterPage() {
                 {isPasswordVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
               </button>
             </div>
-            {/* Mensagens de erro removidas daqui */}
           </div>
-          {/* Campo Confirmar Senha */}
           <div>
             <div className="flex gap-1 items-center rounded-2xl bg-blue-200 pl-3 duration-300 border-gray-400 group delay-200 relative cursor-text *:cursor-text">
               <label htmlFor="confirmPasswordRegister">
@@ -316,10 +312,8 @@ function RegisterPage() {
                 )}
               </button>
             </div>
-            {/* Mensagens de erro removidas daqui */}
           </div>
 
-          {/* Checkbox de Termos e Condições */}
           <div className="flex items-center mt-2">
             <input
               type="checkbox"
@@ -380,6 +374,7 @@ function RegisterPage() {
               <button
                 type="button"
                 onClick={handleAppleSignIn}
+                desabled={!window.AppleID}
                 className="bg-white rounded-full p-2 flex items-center justify-center gap-2 hover:bg-gray-100"
               >
                 <AppleIcon className="text-black" />
