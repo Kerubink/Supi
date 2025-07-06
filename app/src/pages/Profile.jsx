@@ -99,7 +99,7 @@ function Profile() {
         </header>
 
         {/* Seção de Saldo */}
-        <section className="mb-3 bg-opacity-70 backdrop-blur-lg rounded-4xl">
+        <section className="mb-3  rounded-4xl">
           <div className="space-y-1">
             <p className="text-2xl font-black">
               R$ {userData.currentBalance ? parseFloat(userData.currentBalance).toFixed(2) : "0,00"}
@@ -111,7 +111,7 @@ function Profile() {
         </section>
 
         {/* Badges */}
-        <section className="mb-8 bg-opacity-70 backdrop-blur-lg rounded-4xl">
+        <section className="mb-8 rounded-4xl">
           <div className="grid grid-cols-3 gap-4">
             {[["Iniciante", ACCENT_BLUE], ["Economista", ACCENT_GREEN], ["Investidor", ACCENT_CYAN]].map(
               ([label, color], index) => (
@@ -130,7 +130,7 @@ function Profile() {
         </section>
 
         {/* Configurações */}
-        <section className="mb-8 bg-opacity-70 backdrop-blur-lg rounded-4xl">
+        <section className="mb-8 rounded-4xl">
           <h2 className="text-xl font-bold mb-4">Configurações</h2>
           <div className="space-y-4">
             {[

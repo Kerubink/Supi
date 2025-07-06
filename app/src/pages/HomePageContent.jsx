@@ -9,16 +9,16 @@ import Stack from "@mui/material/Stack";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import FitnessCenterIcon from "@mui/icons-material/FitnessCenter"; 
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import Loading from "../components/loading/loading";
 
-const PRIMARY_BG = "#191919"; 
+const PRIMARY_BG = "#191919";
 const SECTION_BG = "#282828";
-const TEXT_COLOR = "#f9f2e7"; 
-const ACCENT_BLUE = "#00a8c6"; 
-const ACCENT_CYAN = "#40c0cb"; 
+const TEXT_COLOR = "#f9f2e7";
+const ACCENT_BLUE = "#00a8c6";
+const ACCENT_CYAN = "#40c0cb";
 const ACCENT_GREEN = "#aee239";
 const ACCENT_YELLOW_GREEN = "#8fbe00";
 const ACCENT_ORANGE = "#FF8042";
@@ -150,9 +150,7 @@ function DashboardHomePage() {
   };
 
   if (loading) {
-    return (
-      <Loading/>
-    );
+    return <Loading />;
   }
 
   if (error) {
@@ -193,9 +191,7 @@ function DashboardHomePage() {
           <span className="font-extrabold text-xl">Olá, usuário</span>
         </header>
 
-        <section
-          className={`mb-8  bg-opacity-70 backdrop-blur-lg p-6 rounded-4xl border border-gray-700`}
-        >
+        <section className={`mb-8 p-6 rounded-4xl border border-gray-700`}>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <AccountBalanceWalletIcon sx={{ color: ACCENT_BLUE }} /> Finanças
           </h2>
@@ -217,9 +213,7 @@ function DashboardHomePage() {
           </div>
         </section>
 
-        <section
-          className={`mb-8  bg-opacity-70 backdrop-blur-lg rounded-lg px-1`}
-        >
+        <section className={`mb-8 rounded-lg px-1`}>
           <div className="grid grid-cols-7 text-center gap-2">
             {getWeeklyCalendarData().map((day, index) => (
               <div
@@ -244,9 +238,7 @@ function DashboardHomePage() {
           </div>
         </section>
 
-        <section
-          className={`mb-8 bg-opacity-70 backdrop-blur-lg rounded-lg`}
-        >
+        <section className={`mb-8  rounded-lg`}>
           <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
             Progresso
           </h2>
@@ -270,9 +262,7 @@ function DashboardHomePage() {
           </div>
         </section>
 
-        <section
-          className={` bg-opacity-70 backdrop-blur-lg rounded-lg`}
-        >
+        <section>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
               <FitnessCenterIcon sx={{ color: ACCENT_BLUE }} /> Exercícios
@@ -290,7 +280,7 @@ function DashboardHomePage() {
             {getSuggestedExercises().map((exercise) => (
               <div
                 key={exercise.id}
-                className={`flex flex-col min-w-50 items-start justify-between  h-55 bg-opacity-70 backdrop-blur-lg p-4 rounded-3xl border border-gray-800 transform transition duration-200 hover:scale-[1.01] cursor-pointer`}
+                className={`flex flex-col min-w-50 items-start justify-between h-55 backdrop-blur-md p-4 rounded-3xl border border-gray-800 transform transition duration-200 hover:scale-[1.01] cursor-pointer`}
                 onClick={() => alert(`Iniciar exercício: ${exercise.title}`)}
               >
                 <div>
@@ -305,7 +295,7 @@ function DashboardHomePage() {
                 </div>
 
                 <span
-                  className={`inline-block  bg-opacity-20 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full`}
+                  className={`inline-block bg-[#00a8c6] text-white text-xs font-semibold px-2.5 py-0.5 rounded-full`}
                 >
                   {exercise.category}
                 </span>

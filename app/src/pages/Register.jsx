@@ -77,7 +77,7 @@ function RegisterPage() {
     }
 
     if (validationErrors.length > 0) {
-      setFormMessage(validationErrors.join(" ")); // Junta todas as mensagens de erro
+      setFormMessage(validationErrors.join(" ")); 
       return;
     }
 
@@ -112,7 +112,7 @@ function RegisterPage() {
         default:
           message = "Ocorreu um erro inesperado ao cadastrar. " + error.message;
       }
-      setFormMessage(message); // Define a mensagem de erro do Firebase
+      setFormMessage(message); 
     }
   };
 

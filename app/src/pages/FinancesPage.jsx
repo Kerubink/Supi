@@ -340,16 +340,6 @@ function FinancesPage() {
           </button>
         </header>
 
-        {scanMessage && (
-          <div
-            className="bg-[#aee239] bg-opacity-20 border-l-4 border-[#aee239] text-[#f9f2e7] p-4 mb-6 rounded-lg"
-            role="alert"
-          >
-            <p className="font-bold text-base">Sucesso!</p>
-            <p className="text-sm">{scanMessage}</p>
-          </div>
-        )}
-
         <section className="backdrop-blur-lg rounded-lg mb-8">
           <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col items-start backdrop-blur-lg rounded-lg">
@@ -379,7 +369,7 @@ function FinancesPage() {
           </div>
         </section>
 
-        <section className="bg-opacity-70 backdrop-blur-lg  rounded-lg mb-8">
+        <section className="bg-opacity-70 rounded-lg mb-8">
           <h2 className="text-xl font-semibold mb-4 text-[#f9f2e7] flex items-center gap-2">
             <EmojiEventsIcon sx={{ color: "#00a8c6", fontSize: 20 }} /> Suas
             metas
@@ -398,7 +388,7 @@ function FinancesPage() {
                 return (
                   <div
                     key={goal.id}
-                    className="flex items-center gap-4 bg-opacity-70 backdrop-blur-lg p-4 rounded-lg border border-gray-800"
+                    className="flex items-center gap-4  p-4 rounded-lg border border-gray-800"
                   >
                     {/* Barra de progresso circular */}
                     <div className="max-w-12 max-h-24">
@@ -459,7 +449,7 @@ function FinancesPage() {
         </section>
 
         {/* Seção de Despesas por Categoria (Gráfico) */}
-        <section className="backdrop-blur-lg rounded-lg mb-8">
+        <section className="rounded-lg mb-8">
           <h2 className="text-xl font-semibold mb-4 text-[#f9f2e7] flex items-center gap-2">
             <PieChartIcon sx={{ color: "#00a8c6", fontSize: 20 }} /> Onde sua
             Grana Vai
@@ -504,7 +494,7 @@ function FinancesPage() {
         </section>
 
         {/* Seção de Histórico de Movimentações Recentes */}
-        <section className="backdrop-blur-lg rounded-lg mb-12">
+        <section className="rounded-lg mb-12">
           <h2 className="text-xl font-semibold mb-4 text-[#f9f2e7] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <HistoryIcon sx={{ color: "#00a8c6", fontSize: 20 }} /> Últimas
