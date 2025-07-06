@@ -513,7 +513,7 @@ function FinancesPage() {
                 .slice(0, 5)
                 .map(
                   (
-                    t // Limita a 5 transações recentes
+                    t 
                   ) => (
                     <li
                       key={t.id}
