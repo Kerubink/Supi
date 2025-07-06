@@ -3,7 +3,7 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/logoSupi2.png',
+  '/Supi.png',
 ];
 
 self.addEventListener('install', (event) => {
